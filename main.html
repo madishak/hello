@@ -6,46 +6,58 @@
 </head>
 <body>
 <h2>Messages</h2>
-<form method="post" action="/add_message">
+<form method="post" action="/add_message" id="messages">
 <!--    <input type="text" name="nick" placeholder="Логин">-->
-    <textarea name="message" placeholder="Сообщение" id="text"></textarea>
-    <button type="submit" id="send">Отправить</button>
+    <select form="messages" name="receiver" id="names">
+<!--        <option  name="receiver-name" value=""  SELECTED></option>-->
+        {% for log in login|reverse %}
+        <option id="{{log.id}}" name="receiver-name" value="{{log.name}}">{{log.name}}</option>
+        {% endfor %}
+    </select>
+
+      <input type="text" id="receiver" placeholder="">
+
+    <textarea name="message" placeholder="Сообщение"></textarea>
+    <button type="submit">Отправить</button>
 </form>
 
 <h3>Ваши сообщения</h3>
 {% for log in result|reverse %}
-<div><b>{{ log.text }}</b>&nbsp;
-    {{ log.name }}
-    {{ log}}
- {{ log.user_id }}
+<div>
+    <b>{{ log.name }}</b>
+    <em>{{ log.text }}</em>&nbsp;
+    {{ log.date }}
+<!--    {{log.receiver}}-->
+        {{ log}}
+
 </div>
 {% endfor %}
- {% for n in result|reverse %}
-    {{ n.user_id }}
-{% endfor %}
+<!-- {% for n in result|reverse %}-->
+<!--    {{ n.user_id }}-->
+<!--{% endfor %}-->
 <div><b></b>&nbsp;
 
 </div>
 
+
 <script>
-<!--
-function timedRefresh(timeoutPeriod) {
-	setTimeout("location.reload(true);",timeoutPeriod);
-}
+console.log({{res}});
+<!--{% for r in res|reverse %}-->
 
+<!--{% endfor %}-->
 
-textarea = document.getElementById('text');
-textarea.onfblur = function() {
-window.onload = timedRefresh(600);
-}
-textarea.onfocus = function() {
-window.onload = timedRefresh(6000);
-}
+    var receivers = document.getElementById('names');
 
 
 
+      let receiver = document.getElementById('receiver');
+    receivers.addEventListener('change', function() {
+    console.log(receivers.value);
+    receivers.options[receivers.options.selectedIndex].selected = true;
+    })
 
-//   -->
+
 </script>
+
 </body>
 </html>

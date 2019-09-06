@@ -3,12 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from plyer import notification
 from datetime import datetime, date, time
 import os
+import json
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'messages.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'mes.db')
 db = SQLAlchemy(app)
 
 
@@ -17,6 +18,7 @@ class Login(db.Model):
     name = db.Column(db.String(1024), nullable=False)
     password = db.Column(db.String(1024), nullable=False)
     messages = db.relationship('Message', backref='user', lazy='dynamic')
+
 
     # def __init__(self, name, password):
     #     self.name = name.strip()
@@ -30,7 +32,7 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     receiver = db.Column(db.String(1024), nullable=False)
     text = db.Column(db.String(32), nullable=False)
-    # date = db.Column(db.DateTime)
+    date = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey('login.id'))
 
 
@@ -39,7 +41,7 @@ class Message(db.Model):
     #     self.text = text.strip()
 
     def __repr__(self):
-        return '<Message %r>' % self.text
+        return '<Message %r>' % self.date
 
 
 
@@ -72,7 +74,8 @@ def get_user():
 
 @app.route('/main', methods=['GET'])
 def main():
-    return render_template('main.html', result=db.session.query(Login.name, Message.receiver, Message.text).filter(Login.id == Message.user_id).all(), login=Login.query.all())
+    result=db.session.query(Login.name, Message.receiver, Message.text).filter(Login.id == Message.user_id).all()
+    return render_template('main.html', result=db.session.query(Login.name, Message.receiver, Message.text, Message.date).filter(Login.id == Message.user_id).all(), login=Login.query.all(), res=json.dumps(result))
 
 
 @app.route('/login', methods=['GET'])
@@ -87,20 +90,30 @@ def add_message():
     # name = Login.name
 
     receiver = request.form.get('receiver')
+   # receiver_name = request.form['receiver']
     text = request.form['message']
     print(receiver)
 
+    current_date = datetime.now(tz=None)
+    print(current_date)
+
+
+    # if current_date < Message.date:
+    #     pr
+
     users = Login.query.get(current_user['user_id'])
-    message = Message(receiver="receiver", text=text, user=users)
+    message = Message(receiver=receiver, text=text, date=datetime.now(tz=None), user=users)
 
-    # r = Message(receiver=receiver, text=text, user=users, date=datetime.datetime.utcnow(tz=None))
+    d = Message.query.order_by(db.desc('date')).first()
+    print(d)
 
+    r = db.session.query(Login.name, Message.receiver, Message.text, Message.date).filter(Login.id == Message.user_id).filter(Message.receiver == receiver and Message.date > current_date).all()
+    print(r)
     if len(text) == 0:
         notification.notify(
             title='Ошибка',
             message='Введите сообщение'
         )
-
 
     db.session.add(message)
     db.session.commit()
