@@ -20,5 +20,5 @@ setInterval(() => {
     const next = last === undefined ? 0 : last + 1;
     const nextState = [...state, next];
 
-    setInterval(nextState);
+    setState(nextState);
 }, 1000);
